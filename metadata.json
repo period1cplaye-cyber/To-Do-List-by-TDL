@@ -1,0 +1,6 @@
+{
+  "name": "TDL - To-Do List",
+  "description": "Aplikasi To-Do List siap pakai berdasarkan desain Figma dengan kategori tugas, kalender, sidebar, profil pengguna, dan manajemen aktivitas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
