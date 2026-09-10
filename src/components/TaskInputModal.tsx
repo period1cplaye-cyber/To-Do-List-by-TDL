@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CategoryType, Task } from '../types';
-import { Tag, Send, X, Calendar, Clock } from 'lucide-react';
+import { CategoryType, Task, PriorityLevel } from '../types';
+import { Tag, Send, X, Calendar, Clock, Flag } from 'lucide-react';
 import { CategoryModal } from './CategoryModal';
 
 interface TaskInputModalProps {
@@ -28,6 +28,7 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
   const [category, setCategory] = useState<CategoryType>(
     initialCategory === 'Semua' ? 'Kesehatan' : initialCategory
   );
+  const [priority, setPriority] = useState<PriorityLevel>('Sedang');
   // Pure string text box for date / deadline as requested
   const [dateString, setDateString] = useState<string>(initialDueDate || '');
 
@@ -45,6 +46,7 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
         setCategory(initialCategory);
       }
       setDateString(initialDueDate || '');
+      setPriority('Sedang');
     }
   }, [isOpen, initialCategory, initialDueDate]);
 
@@ -57,6 +59,7 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
     onAddTask({
       title: title.trim(),
       category: category || 'Kesehatan',
+      priority,
       // Pure string date without integer
       dueDate: dateString.trim() || undefined,
     });
@@ -64,6 +67,7 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
     // Reset and close
     setTitle('');
     setDateString('');
+    setPriority('Sedang');
     onClose();
   };
 
@@ -163,7 +167,56 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
               </div>
             </div>
 
-            {/* 3. Action Bar: Kategori terbatas button & Tombol Simpan */}
+            {/* 3. Tingkat Prioritas (Priority Level - Ideate Paper) */}
+            <div className="space-y-1.5 pt-1">
+              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Flag className="w-3.5 h-3.5 text-[#0284c7]" />
+                  <span>Tingkat Prioritas (Priority Level)</span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">Tingkat kepentingan</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPriority('Tinggi')}
+                  className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                    priority === 'Tinggi'
+                      ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-xs ring-2 ring-rose-200 font-bold'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                  <span>Tinggi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPriority('Sedang')}
+                  className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                    priority === 'Sedang'
+                      ? 'bg-amber-50 border-amber-400 text-amber-700 shadow-xs ring-2 ring-amber-200 font-bold'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <span>Sedang</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPriority('Rendah')}
+                  className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                    priority === 'Rendah'
+                      ? 'bg-sky-50 border-sky-400 text-sky-700 shadow-xs ring-2 ring-sky-200 font-bold'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
+                  <span>Rendah</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Action Bar: Kategori terbatas button & Tombol Simpan */}
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               {/* Kategori Button */}
               <button

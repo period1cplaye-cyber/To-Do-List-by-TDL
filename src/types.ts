@@ -8,18 +8,23 @@ export type CategoryType =
   | 'Wishlist'
   | string;
 
+export type PriorityLevel = 'Tinggi' | 'Sedang' | 'Rendah';
+
 export interface Task {
   id: string;
   title: string;
   category: CategoryType;
   completed: boolean;
   createdAt: string;
-  dueDate?: string; // e.g. YYYY-MM-DD
+  priority?: PriorityLevel;
+  dueDate?: string; // e.g. YYYY-MM-DD or pure text string
   dueTime?: string; // e.g. HH:mm
   repeat?: 'Tidak ada' | 'Harian' | 'Mingguan' | 'Bulanan';
   isStarred?: boolean;
   description?: string;
 }
+
+export type SortOption = 'waktu-terbaru' | 'waktu-terlama' | 'prioritas-tinggi';
 
 export type TabType = 'home' | 'user';
 

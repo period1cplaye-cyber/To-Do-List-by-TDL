@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Task, CategoryFilter, TabType } from './types';
+import { Task, CategoryFilter, TabType, SortOption } from './types';
 import { DEFAULT_TASKS, INITIAL_CATEGORIES } from './data/defaultTasks';
 import { SplashLoader } from './components/SplashLoader';
 import { TopChips } from './components/TopChips';
@@ -17,7 +17,16 @@ import { ProfileView } from './components/ProfileView';
 import { SettingsModal } from './components/SettingsModal';
 import { GuideModal } from './components/GuideModal';
 import { FeedbackModal } from './components/FeedbackModal';
-import { Plus, CheckCircle2, ListFilter, CheckCircle, Clock } from 'lucide-react';
+import {
+  Plus,
+  ArrowUpDown,
+  Search,
+  X,
+  Flag,
+  Clock,
+  Trash2,
+  SlidersHorizontal,
+} from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_TASKS = 'tdl_tasks_v3_clean';
 const LOCAL_STORAGE_KEY_CATS = 'tdl_categories_v3_clean';
@@ -25,10 +34,10 @@ const LOCAL_STORAGE_KEY_CATS = 'tdl_categories_v3_clean';
 type TaskStatusFilter = 'semua' | 'aktif' | 'selesai';
 
 export default function App() {
-  // Always start with splash loading sequence as requested: "alur aplikasi selalu dari loading"
+  // Always start with splash loading sequence as requested
   const [showSplash, setShowSplash] = useState<boolean>(true);
 
-  // Initial tasks state is ZERO (empty array) as requested: "buat aktifitas menjadi nol"
+  // Initial tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY_TASKS);
@@ -38,7 +47,7 @@ export default function App() {
     } catch {
       // Fallback to zero
     }
-    return DEFAULT_TASKS; // []
+    return DEFAULT_TASKS;
   });
 
   // Categories list
@@ -57,8 +66,12 @@ export default function App() {
   // Navigation & filter states
   const [currentTab, setCurrentTab] = useState<TabType>('home');
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('Semua');
-  // Simple feature from Ideate paper: Task Status Filter ('semua' | 'aktif' | 'selesai')
   const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>('semua');
+
+  // New Features: Sort by time / Priority Level & Micro Features
+  const [sortBy, setSortBy] = useState<SortOption>('waktu-terbaru');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   // Modals & Drawers states
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
@@ -95,6 +108,30 @@ export default function App() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Micro-feature: Update Task (title, priority, date)
+  const handleUpdateTask = (id: string, updates: Partial<Task>) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  };
+
+  // Micro-feature: Duplicate Task
+  const handleDuplicateTask = (taskToDup: Task) => {
+    const duplicated: Task = {
+      ...taskToDup,
+      id: 't-' + Date.now(),
+      title: `${taskToDup.title} (Salinan)`,
+      createdAt: new Date().toISOString(),
+      completed: false,
+    };
+    setTasks((prev) => [duplicated, ...prev]);
+  };
+
+  // Micro-feature: Clear All Completed Tasks
+  const handleClearCompleted = () => {
+    setTasks((prev) => prev.filter((t) => !t.completed));
+  };
+
   const handleAddTask = (newTaskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
     const newTask: Task = {
       ...newTaskData,
@@ -116,7 +153,7 @@ export default function App() {
     }
   };
 
-  // Filter tasks based on Category and Task Status (Ideate paper)
+  // 1. Filter tasks based on Category
   const categoryFilteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (activeCategory !== 'Semua' && t.category !== activeCategory) {
@@ -126,13 +163,54 @@ export default function App() {
     });
   }, [tasks, activeCategory]);
 
-  const displayedTasks = useMemo(() => {
+  // 2. Filter tasks based on Task Status ('semua' | 'aktif' | 'selesai')
+  const statusFilteredTasks = useMemo(() => {
     return categoryFilteredTasks.filter((t) => {
       if (statusFilter === 'aktif') return !t.completed;
       if (statusFilter === 'selesai') return t.completed;
       return true;
     });
   }, [categoryFilteredTasks, statusFilter]);
+
+  // 3. Search & Sort by time or Priority Level
+  const displayedTasks = useMemo(() => {
+    let result = [...statusFilteredTasks];
+
+    // Search query filter (Micro feature)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q) ||
+          (t.dueDate && t.dueDate.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort options: Waktu Terbaru, Waktu Terlama, Prioritas Tinggi
+    if (sortBy === 'waktu-terbaru') {
+      result.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } else if (sortBy === 'waktu-terlama') {
+      result.sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    } else if (sortBy === 'prioritas-tinggi') {
+      const priorityWeight: Record<string, number> = {
+        Tinggi: 3,
+        Sedang: 2,
+        Rendah: 1,
+      };
+      result.sort((a, b) => {
+        const weightA = priorityWeight[a.priority || 'Sedang'];
+        const weightB = priorityWeight[b.priority || 'Sedang'];
+        return weightB - weightA;
+      });
+    }
+
+    return result;
+  }, [statusFilteredTasks, searchQuery, sortBy]);
 
   const activeCount = useMemo(
     () => categoryFilteredTasks.filter((t) => !t.completed).length,
@@ -163,7 +241,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f4f0ec] font-sans text-slate-800 antialiased flex flex-col justify-between">
-      {/* 1. Splash Screen recreation from Figma Loading 4 -> Loading 1 -> Loading 2 -> Loading 3 */}
+      {/* 1. Splash Screen recreation from Figma Loading */}
       {showSplash && (
         <SplashLoader onFinish={() => setShowSplash(false)} />
       )}
@@ -217,15 +295,29 @@ export default function App() {
                 Simple Dashboard & Task Status Filter from Ideate Section of Paper:
                 - Simple 3-segment filter: Semua / Belum Selesai / Selesai
                 - Simple progress bar
+                - Priority & Sort by time selector
                 - Easily drawn in free Figma using basic auto-layout frame
               */}
               {tasks.length > 0 && (
-                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-xs space-y-2">
+                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-xs space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-700">Progres Aktivitas</span>
-                    <span className="text-slate-500 font-medium text-[11px]">
-                      {stats.completed} dari {stats.total} selesai
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-500 font-medium text-[11px]">
+                        {stats.completed} dari {stats.total} selesai
+                      </span>
+                      {completedCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearCompleted}
+                          className="text-[10px] text-rose-500 hover:text-rose-700 font-semibold hover:underline flex items-center gap-0.5"
+                          title="Hapus semua tugas yang telah selesai"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                          <span>Bersihkan</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Progress bar line */}
@@ -237,7 +329,7 @@ export default function App() {
                   </div>
 
                   {/* Segmented Task Status Filter (Ideate Paper) */}
-                  <div className="grid grid-cols-3 gap-1 pt-1 bg-slate-50 p-1 rounded-lg border border-slate-200/60">
+                  <div className="grid grid-cols-3 gap-1 pt-0.5 bg-slate-50 p-1 rounded-lg border border-slate-200/60">
                     <button
                       type="button"
                       onClick={() => setStatusFilter('semua')}
@@ -272,6 +364,91 @@ export default function App() {
                       Selesai ({completedCount})
                     </button>
                   </div>
+
+                  {/* Micro Toolbar: Sort by Time / Priority & Quick Search Toggle */}
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+                    {/* Sort Selector: Waktu Terbaru, Waktu Terlama, Prioritas Tinggi */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                        <span>Urut:</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSortBy('waktu-terbaru')}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                          sortBy === 'waktu-terbaru'
+                            ? 'bg-sky-100 text-[#0284c7] font-bold border border-sky-300'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                        title="Urutkan dari waktu pembuatan paling baru"
+                      >
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>Terbaru</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSortBy('waktu-terlama')}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                          sortBy === 'waktu-terlama'
+                            ? 'bg-sky-100 text-[#0284c7] font-bold border border-sky-300'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                        title="Urutkan dari waktu pembuatan paling lama"
+                      >
+                        <span>Terlama</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSortBy('prioritas-tinggi')}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                          sortBy === 'prioritas-tinggi'
+                            ? 'bg-rose-100 text-rose-700 font-bold border border-rose-300'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                        title="Urutkan dari prioritas paling tinggi (Tinggi > Sedang > Rendah)"
+                      >
+                        <Flag className="w-2.5 h-2.5" />
+                        <span>Prioritas</span>
+                      </button>
+                    </div>
+
+                    {/* Micro Search Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => setIsSearchOpen((prev) => !prev)}
+                      className={`p-1 rounded-md text-slate-500 hover:text-slate-800 transition-colors ${
+                        isSearchOpen || searchQuery ? 'bg-sky-100 text-[#0284c7]' : 'hover:bg-slate-100'
+                      }`}
+                      title="Pencarian cepat tugas"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Micro Search Input (Expandable) */}
+                  {isSearchOpen && (
+                    <div className="relative pt-1">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Cari tugas / kategori..."
+                        autoFocus
+                        className="w-full text-xs px-2.5 py-1.5 pl-7 pr-7 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0284c7] focus:bg-white"
+                      />
+                      <Search className="w-3 h-3 text-slate-400 absolute left-2 top-3" />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -283,23 +460,39 @@ export default function App() {
                 />
               )}
 
-              {/* Empty state for filtered status */}
+              {/* Empty state for filtered status or search query */}
               {tasks.length > 0 && displayedTasks.length === 0 && (
                 <div className="text-center py-8 px-4 bg-white rounded-xl border border-slate-200">
                   <p className="text-xs font-semibold text-slate-600">
-                    Tidak ada aktivitas dengan status ini.
+                    {searchQuery
+                      ? `Tidak ditemukan tugas dengan kata kunci "${searchQuery}".`
+                      : 'Tidak ada aktivitas dengan status atau filter ini.'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setStatusFilter('semua')}
-                    className="mt-2 text-xs text-[#0284c7] font-bold hover:underline"
-                  >
-                    Tampilkan Semua Status
-                  </button>
+                  <div className="flex items-center justify-center gap-3 mt-2.5">
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="text-xs text-[#0284c7] font-bold hover:underline"
+                      >
+                        Reset Pencarian
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter('semua');
+                        setSearchQuery('');
+                      }}
+                      className="text-xs text-[#0284c7] font-bold hover:underline"
+                    >
+                      Tampilkan Semua
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* Active Tasks List */}
+              {/* Active Tasks List with Priority & Micro-features */}
               {displayedTasks.length > 0 && (
                 <div className="space-y-2">
                   {displayedTasks.map((task) => (
@@ -308,6 +501,8 @@ export default function App() {
                       task={task}
                       onToggleComplete={handleToggleComplete}
                       onDelete={handleDeleteTask}
+                      onUpdateTask={handleUpdateTask}
+                      onDuplicate={handleDuplicateTask}
                     />
                   ))}
                 </div>
@@ -358,7 +553,7 @@ export default function App() {
         stats={stats}
       />
 
-      {/* Task Input Modal with pure string text box date input */}
+      {/* Task Input Modal with pure string text box date input and priority */}
       <TaskInputModal
         isOpen={isInputModalOpen}
         onClose={() => setIsInputModalOpen(false)}
