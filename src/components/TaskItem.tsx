@@ -156,7 +156,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   type="text"
                   value={editDueDate}
                   onChange={(e) => setEditDueDate(e.target.value)}
-                  placeholder="Batas waktu teks (cth: Besok sore)..."
+                  placeholder="hari/bulan/tahun (cth: 15/10/2026)..."
                   className="flex-1 text-[11px] px-2 py-1 border border-slate-200 rounded-lg bg-slate-50 text-slate-700"
                 />
                 <button

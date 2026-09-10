@@ -50,18 +50,8 @@ export default function App() {
     return DEFAULT_TASKS;
   });
 
-  // Categories list
-  const [categories, setCategories] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CATS);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {
-      // Fallback
-    }
-    return INITIAL_CATEGORIES;
-  });
+  // Categories list: strictly only the categories available in task creation choices + 'Semua'
+  const [categories] = useState<string[]>(INITIAL_CATEGORIES);
 
   // Navigation & filter states
   const [currentTab, setCurrentTab] = useState<TabType>('home');
@@ -89,13 +79,14 @@ export default function App() {
     }
   }, [tasks]);
 
+  // Clean and sync categories to local storage
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY_CATS, JSON.stringify(categories));
+      localStorage.setItem(LOCAL_STORAGE_KEY_CATS, JSON.stringify(INITIAL_CATEGORIES));
     } catch {
       // Ignore
     }
-  }, [categories]);
+  }, []);
 
   // Handle task actions
   const handleToggleComplete = (id: string) => {
@@ -140,17 +131,6 @@ export default function App() {
       completed: false,
     };
     setTasks((prev) => [newTask, ...prev]);
-
-    // Track category in chips if new
-    if (newTask.category && !categories.includes(newTask.category)) {
-      setCategories((prev) => [...prev, newTask.category]);
-    }
-  };
-
-  const handleAddNewCategory = (newCat: string) => {
-    if (!categories.includes(newCat)) {
-      setCategories((prev) => [...prev, newCat]);
-    }
   };
 
   // 1. Filter tasks based on Category
@@ -560,7 +540,6 @@ export default function App() {
         onAddTask={handleAddTask}
         availableCategories={categories}
         initialCategory={activeCategory === 'Semua' ? 'Kesehatan' : activeCategory}
-        onAddNewCategory={handleAddNewCategory}
       />
 
       {/* Settings Modal */}

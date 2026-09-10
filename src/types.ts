@@ -3,10 +3,7 @@ export type CategoryType =
   | 'Kehidupan'
   | 'Olahraga'
   | 'Pikiran'
-  | 'Berhenti'
-  | 'Kerja'
-  | 'Wishlist'
-  | string;
+  | 'Berhenti';
 
 export type PriorityLevel = 'Tinggi' | 'Sedang' | 'Rendah';
 

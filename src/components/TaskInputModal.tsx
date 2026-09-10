@@ -13,8 +13,8 @@ interface TaskInputModalProps {
   onAddNewCategory?: (newCat: string) => void;
 }
 
-// Rekomendasi string tanggal sederhana (murni teks tanpa integer)
-const QUICK_DATE_STRINGS = ['Hari ini', 'Besok', 'Lusa', 'Senin depan', 'Akhir pekan'];
+// Rekomendasi string tanggal sederhana dengan format hari/bulan/tahun logis
+const QUICK_DATE_STRINGS = ['Hari ini', 'Besok', '15/10/2026', '25/12/2026', 'Senin depan'];
 
 export const TaskInputModal: React.FC<TaskInputModalProps> = ({
   isOpen,
@@ -122,7 +122,7 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#0284c7]" />
-                  <span>Tanggal / Batas Waktu (Murni Teks)</span>
+                  <span>Batas Waktu (hari/bulan/tahun)</span>
                 </label>
                 {dateString && (
                   <button
@@ -135,19 +135,19 @@ export const TaskInputModal: React.FC<TaskInputModalProps> = ({
                 )}
               </div>
 
-              {/* Text Box Murni String */}
+              {/* Text Box Murni String dengan format logis hari/bulan/tahun */}
               <div className="relative">
                 <input
                   id="input-task-date-text"
                   type="text"
                   value={dateString}
                   onChange={(e) => setDateString(e.target.value)}
-                  placeholder="Ketik tanggal bebas (cth: Besok sore, Hari ini, Senin depan, 15 Okt)..."
+                  placeholder="hari/bulan/tahun (cth: 15/10/2026 atau 15 Oktober 2026)..."
                   className="w-full text-xs font-medium px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0284c7] focus:bg-white text-slate-800 placeholder-slate-400"
                 />
               </div>
 
-              {/* Quick String Chips: Simple pills easily drawn in free Figma */}
+              {/* Quick String Chips: Format logis */}
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span className="text-[10px] text-slate-400">Pilihan cepat:</span>
                 {QUICK_DATE_STRINGS.map((str) => (

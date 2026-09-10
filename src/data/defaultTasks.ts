@@ -15,8 +15,6 @@ export const INITIAL_CATEGORIES = [
   'Olahraga',
   'Pikiran',
   'Berhenti',
-  'Kerja',
-  'Wishlist',
 ];
 
 export const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -25,8 +23,6 @@ export const CATEGORY_COLORS: Record<string, { bg: string; text: string; border:
   Olahraga: { bg: 'bg-orange-50 text-orange-700', text: 'text-orange-700', border: 'border-orange-200' },
   Pikiran: { bg: 'bg-indigo-50 text-indigo-700', text: 'text-indigo-700', border: 'border-indigo-200' },
   Berhenti: { bg: 'bg-rose-50 text-rose-700', text: 'text-rose-700', border: 'border-rose-200' },
-  Kerja: { bg: 'bg-blue-50 text-blue-700', text: 'text-blue-700', border: 'border-blue-200' },
-  Wishlist: { bg: 'bg-amber-50 text-amber-700', text: 'text-amber-700', border: 'border-amber-200' },
 };
 
 // Initial task list is set to ZERO (empty) as requested
