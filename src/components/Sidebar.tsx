@@ -135,9 +135,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 m-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
           <div className="flex items-center justify-center gap-1 text-[11px] font-bold text-slate-700">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>TDL Siap Pakai</span>
+            <span>To Do List BY Team TDL</span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Versi 1.0 &bull; Desain Figma Asli</p>
+          <p className="text-[10px] text-slate-400 mt-1">Versi demo &bull; Versi ini merupakan demo</p>
         </div>
       </div>
     </div>
